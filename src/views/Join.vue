@@ -57,10 +57,9 @@ async function Join(event) {
     localStorage.setItem('firstName', data.user.firstName)
     localStorage.setItem('lastName', data.user.lastName)
     localStorage.setItem('email', data.user.email)
-    localStorage.setItem('password', data.user.password)
 
     router.push({
-      name: 'normal'
+      name: 'main'
     })
   }
   else if (response.status === 400) {

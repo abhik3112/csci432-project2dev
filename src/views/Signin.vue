@@ -17,7 +17,10 @@ async function signIn(event) {
     return
   }
 
-  const data = { email: email.value, password: password.value }
+  const data = {
+    email: email.value,
+    password: password.value
+  }
 
   const url = 'https://excursions-api-server.azurewebsites.net/user/sign-in'
 
@@ -37,7 +40,7 @@ async function signIn(event) {
     localStorage.setItem("userName", data.user.userName)
 
     router.push({
-      name: 'normal'
+      name: 'main'
     })
   }
   else if (response.status === 400) {
@@ -47,6 +50,9 @@ async function signIn(event) {
   else if (response.status === 500) {
     errormsg.value = "Internal Server Error"
     console.log("Internal Server Error")
+  }
+  else{
+    console.log("other error",response.status,await response.text())
   }
 }
 

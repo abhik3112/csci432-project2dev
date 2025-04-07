@@ -5,7 +5,7 @@ const errormsg = ref("")
 const parkCode = ref("")
 const stateCode = ref('')
 
-async function fetchNationalParks() {
+async function fetchCampgrounds() {
 
   const url = 'https://excursions-api-server.azurewebsites.net/campgrounds'
 

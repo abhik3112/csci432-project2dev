@@ -155,11 +155,11 @@ async function dlt() {
     console.log("Internal Server Error")
   }
 }
-
 onMounted(() => {
   fetchUser();
 });
 </script>
+
 <template>
   <main>
     <ul>
@@ -167,8 +167,8 @@ onMounted(() => {
       <li>First Name: {{ firstName }}</li>
       <li>Last Name: {{ lastName }}</li>
       <li>Email: {{ email }}</li>
-      <button @click="Prflback">Go back</button>
       <button @click="modal.open()">Edit</button>
+      <button @click="dlt">Delete Profile</button>
     </ul>
   </main>
 
@@ -189,7 +189,6 @@ onMounted(() => {
       <input v-model="psswrd" type="password">
     </template>
     <template #footer>
-      <button @click="dlt">Delete Profile</button>
       <button @click.stop="cancel">Cancel</button>
       <button @click="save">Save</button>
     </template>

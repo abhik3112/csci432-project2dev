@@ -44,3 +44,38 @@ async function signOut() {
     <RouterView name="RightSidebar" class="grid-panel vline"></RouterView>
   </main>
 </template>
+
+<style scoped>
+a {
+  cursor: pointer;
+}
+
+.grid-panel {
+  padding-left: 10px;
+}
+
+.view {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+
+
+@media (min-width: 50em) {
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .line {
+    border-right: 3px black solid;
+  }
+
+  .vline {
+    border-left: 3px black solid;
+  }
+}
+
+</style>

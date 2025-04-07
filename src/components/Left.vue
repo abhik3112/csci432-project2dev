@@ -13,15 +13,17 @@ async function go(section) {
 <template>
   <div>
     <h3>Options:</h3>
-    <a @click="go('profile')">Profile</a>
-    <a @click="go('parkdetails')">Park Details</a>
-    <a @click="go('multimedia')">Multimedia</a>
-    <a @click="go('excursions')">Excursions</a>
-    <a @click="go('trips')">Trips</a>
-    <a @click="go('social')">Social</a>
+    <li><a @click="go('profile')">Profile</a></li>
+    <li><a @click="go('parkdetails')">Park Details</a></li>
+    <li><a @click="go('multimedia')">Multimedia</a></li>
+    <li><a @click="go('excursions')">Excursions</a></li>
+    <li><a @click="go('trips')">Trips</a></li>
+    <li><a @click="go('social')">Social</a></li>
   </div>
 </template>
 
 <style scoped>
-
+a {
+  cursor: pointer;
+}
 </style>

@@ -31,18 +31,14 @@ function close(e) {
 
 <style scoped>
 .modal-backdrop {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: red;
-  backdrop-filter: blur(50px);
+  position:absolute;
+  backdrop-filter: blur(30px);
 }
 
 .modal {
-  background-color: white;
+  background-color: lightgray;
   padding: 30px;
+  border: 3px solid black;
 }
 
 .modal-button:hover {

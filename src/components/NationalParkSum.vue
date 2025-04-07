@@ -1,9 +1,12 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const errormsg = ref("")
 const parkCode = ref("")
-const stateCode = ref('')
+const stateCode = ref("")
+const limit = ref(10)
+const start = ref(0)
+const nationalParkSummary = ref("")
 
 async function fetchNationalParksSum() {
 
@@ -23,13 +26,31 @@ async function fetchNationalParksSum() {
   if (response.status == 200) {
     let data = await response.json();
 
-    console.log("from server", data);
+    console.log("summary", data);
 
-    localStorage.getItem("parkcode", data.parkCode);
-    localStorage.getItem("stateCode", data.stateCode);
+    nationalParkSummary.value = data;
+    parkCode.value = data.parkCode;
+    stateCode.value = data.stateCode;
+
   }
   else {
     errormsg.value = "Error fetching user data, code: " + response.status
   }
 }
+onMounted(() => {
+  fetchNationalParksSum();
+});
 </script>
+
+<template>
+  <div>
+    <h2>National Park Summary</h2>
+    <p v-if="errormsg">{{ errormsg }}</p>
+    <div v-if="nationalParkSummary">
+      <p><strong>Park Code:</strong> {{ nationalParkSummary.parkCode }}</p>
+      <p><strong>State Code:</strong> {{ nationalParkSummary.stateCode }}</p>
+      </div>
+    <p v-else-if="!errormsg">Loading national park summary...</p>
+
+    </div>
+</template>

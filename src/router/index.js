@@ -36,6 +36,7 @@ const router = createRouter({
     },
     {
       path: '/main',
+      name: 'main',
       component: Main,
       children: [
         {

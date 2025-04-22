@@ -1,37 +1,32 @@
 <script setup>
-import { onMounted } from 'vue';
+import { useRouter } from 'vue-router'
+import Modal from './Modal.vue';
+import { onMounted, ref, useTemplateRef } from 'vue';
 
+const router = useRouter()
+const errormsg = ref("")
+const name = ref("")
+const description = ref("")
+const exc = ref([])
 
-async function getExcursions() {
+const modal = useTemplateRef('name-modal')
+const editexcid = ref(null)
+const nm = ref("")
+const des = ref("")
 
-const url = 'https://excursions-api-server.azurewebsites.net/national-parks'
-
-const token = localStorage.getItem("token");
-
-const options = {
-  method: "GET",
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
+function open(e) {
+  editexcid.value = e._id
+  nm.value = e.name;
+  des.value = e.description;
+  modal.value.open();
 }
 
-let response = await fetch(url, options)
-
-if (response.status == 200) {
-  let data = await response.json();
-
-  parks.value = data
-
-  localStorage.setItem("parkcode", data[0].parkCode);
-  localStorage.setItem("stateCode", data[0].stateCode);
+function cancel(e) {
+  errormsg.value = 'Cancelled'
+  nm.value = ''
+  des.value = ''
+  modal.value.close(e)
 }
-else {
-  errormsg.value = "Error fetching user data, code: " + response.status
-}
-}
-onMounted(() => {
-getExcursions()
-})
 
 async function save(e) {
   e.preventDefault()
@@ -39,14 +34,11 @@ async function save(e) {
   const token = localStorage.getItem("token")
 
   const data = {
-    email: eml.value || undefined,
-    userName: usrnm.value || undefined,
-    password: psswrd.value || undefined,
-    firstName: frstnm.value || undefined,
-    lastName: lstnm.value || undefined
+    name: nm.value || undefined,
+    description: des.value || undefined,
   }
 
-  const url = 'https://hap-app-api.azurewebsites.net/user'
+  const url = `https://excursions-api-server.azurewebsites.net/excursion/${editexcid.value}`
 
   const options = {
     method: "PATCH",
@@ -59,13 +51,9 @@ async function save(e) {
 
   let response = await fetch(url, options)
 
-  console.log("status:",response.status)
+  console.log("status:", response.status)
 
   if (response.status === 200) {
-    localStorage.setItem("userName", usrnm.value)
-    localStorage.setItem('lastName', lstnm.value)
-    localStorage.setItem('firstName', frstnm.value)
-    localStorage.setItem('email', eml.value)
 
     console.log("success");
 
@@ -73,10 +61,10 @@ async function save(e) {
 
     modal.value.close(e)
 
-    fetchUser();
+    getExcursions()
 
     router.push({
-      name: 'user'
+      name: 'excursions'
     })
   }
   else if (response.status === 400) {
@@ -88,20 +76,92 @@ async function save(e) {
   }
 }
 
+async function postExcursions() {
+  errormsg.value = ""
 
-async function dlt() {
-  if (!confirm("Are you sure you want to delete your account?")) {
+  const token = localStorage.getItem("token")
+
+  const dt = {
+    name: name.value,
+    description: description.value,
+    exc: exc.value
+  }
+
+  console.log("posting:", dt)
+
+  const url = 'https://excursions-api-server.azurewebsites.net/excursion'
+
+  const options = {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(dt),
+  }
+
+  let response = await fetch(url, options)
+
+  if (response.status === 201) {
+    errormsg.value = "Created"
+    const data = await response.json()
+    console.log(data)
+    localStorage.setItem("name", data.user.name)
+    localStorage.setItem("description", data.user.description)
+  }
+  if (response.status === 400) {
+    errormsg.value = "Bad Request"
+  }
+  if (response.status === 401) {
+    errormsg.value = "Unauthorized"
+  }
+  if (response.status === 500) {
+    errormsg.value = "Internal Server Error"
+  }
+}
+
+async function getExcursions() {
+
+  errormsg.value = ""
+
+  const token = localStorage.getItem("token")
+
+  const url = 'https://excursions-api-server.azurewebsites.net/excursions'
+
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+
+  let response = await fetch(url, options)
+
+  if (response.ok) {
+    let data = await response.json()
+    console.log(data)
+
+    exc.value = data.excursions
+
+  }
+  else {
+    errormsg.value = "Error fetching user excursions: " + response.status
+  }
+}
+
+onMounted(() => {
+  getExcursions()
+})
+
+async function dltExc(id) {
+
+  if (!confirm("Are you sure you want to delete this excursion?")) {
     return;
   }
 
-  const token = userStore.token
+  const token = localStorage.getItem("token")
 
-  if (!token) {
-    errormsg.value = "No token found"
-    return
-  }
-
-  const url = 'https://hap-app-api.azurewebsites.net/user'
+  const url = `https://excursions-api-server.azurewebsites.net/excursion/${id}`
 
   const options = {
     method: "DELETE",
@@ -113,11 +173,7 @@ async function dlt() {
   let response = await fetch(url, options)
 
   if (response.status === 200) {
-    userStore.$reset()
-
-    router.push({
-      name: 'home'
-    })
+    errormsg.value  = "Excursion was deleted Successfully. No going back. Its done"
   }
   else if (response.status === 401) {
     errormsg.value = "Unauthorized"
@@ -128,5 +184,67 @@ async function dlt() {
     console.log("Internal Server Error")
   }
 }
-
 </script>
+
+<template>
+  <main>
+    <div>
+      <form @submit.prevent="postExcursions">
+        <h2>Create your excursion here..</h2>
+        <input type="text" v-model="name" placeholder="Enter your excursion name..." required> <br>
+        <input type="text" v-model="description" placeholder="Enter your description..." required> <br>
+        <button type="submit">Post Excursion</button>
+      </form>
+      <hr />
+      <h2>Your Excursions</h2>
+      <button @click="getExcursions">Load My Excursions</button>
+      <div>
+        <div v-for="excs in exc" :key="excs._id">
+          Excursion Name: {{ excs.name }}<br>
+          Description: {{ excs.description }}
+          <br>
+          <button @click="open(excs)">Edit</button>
+          <button @click="dltExc(excs._id)">Delete Excursion</button>
+        </div>
+      </div>
+        <hr />
+      </div>
+  </main>
+  <Modal ref="name-modal">
+    <template #header>
+      <h2>Edit your Informations:</h2>
+    </template>
+    <template #main>
+      Excursion Name:
+      <input v-model="nm" type="text">
+      Description:
+      <input v-model="des" type="text">
+    </template>
+    <template #footer>
+      <button @click.stop="cancel">Cancel</button>
+      <button @click="save">Save</button>
+    </template>
+  </Modal>
+</template>
+
+<style scoped>
+main {
+  margin-left: 20px;
+}
+
+button {
+  background-color: #78C2F1;
+  color: black;
+  padding: 5px 10px;
+  font-size: 15px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  margin: 10px 10px 10px 0px;
+}
+
+button:hover {
+  box-shadow: 0 0 5px black;
+}
+</style>

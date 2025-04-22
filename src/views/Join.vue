@@ -59,7 +59,7 @@ async function Join(event) {
     localStorage.setItem('email', data.user.email)
 
     router.push({
-      name: 'main'
+      name: 'normal'
     })
   }
   else if (response.status === 400) {

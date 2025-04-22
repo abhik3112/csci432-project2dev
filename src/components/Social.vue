@@ -1,15 +1,26 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 const errormsg = ref("")
-const users = ref([])
+const friends = ref([])
 const search = ref("")
 
-async function getusers() {
-  const token = localStorage.getItem(token)
+const searchFriends = computed(() => {
+  if (!search.value) {
+    return friends.value;
+  }
+  return friends.value.filter(friend =>
+    friend.userName.toLowerCase().includes(search.value.toLowerCase())
+  );
+});
 
-  const url = `https://hap-app-api.azurewebsites.net/users?search=userName:${search.value}&sortBy=userName:asc`
+async function getfriends() {
+  const token = localStorage.getItem("token")
+
+  console.log("Token:", token)
+
+  const url = `https://excursions-api-server.azurewebsites.net/friends`
 
   const response = await fetch(url, {
     method: "GET",
@@ -17,6 +28,7 @@ async function getusers() {
       Authorization: `Bearer ${token}`
     }
   })
+  console.log("Status:", response.status)
   if(response.status === 200) {
     errormsg.value = "Ok"
 
@@ -24,12 +36,16 @@ async function getusers() {
 
     console.log(data)
 
-    users.value = data
+    friends.value = data.friends || []
+
   }
-  if(response.status === 401) {
+  else if (response.status === 400) {
+    errormsg.value = "Bad Request"
+  }
+  else if(response.status === 401) {
     errormsg.value = "Unauthorized"
   }
-  if(response.status === 500) {
+  else if(response.status === 500) {
     errormsg.value = "Internal Server Error"
   }
 }
@@ -38,11 +54,11 @@ async function getusers() {
 <template>
   <main>
     <div>
-      <p class="Searchp">Search for usernames here:</p>
-      <input v-model="search" placeholder="Search here..."><br>
-      <button @click="getusers">Search</button> <br>
-      <RouterLink class = "names"v-for="user in users" :to="`/user/${user._id}?name=${user.userName}`">
-        {{ user.userName }} <br>
+      <p class="Searchfriends">Search for Friends here:</p>
+      <input v-model="search" placeholder="Search here..."><br />
+      <button @click="getfriends">Search Friends</button> <br />
+      <RouterLink v-for="friend in searchFriends" :key="friend._id" :to="`social/${friend._id}?name=${friend.userName}`">
+        {{ friend.userName }} <br />
       </RouterLink>
     </div>
   </main>

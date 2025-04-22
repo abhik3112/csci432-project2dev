@@ -1,13 +1,18 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, defineProps, ref } from 'vue';
 
 const errormsg = ref("")
-const campgrounds = ref([])
 const loaded = ref(false)
 
-async function fetchCampgrounds() {
+const props = defineProps({
+  parkCode:String
+})
 
-  const url = 'https://excursions-api-server.azurewebsites.net/campgrounds?limit=10'
+const list = ref([])
+
+async function getVideos() {
+
+  const url = `https://excursions-api-server.azurewebsites.net/multimedia/videos?limit=5?parkCode=${props.parkCode}`
 
   const token = localStorage.getItem("token");
 
@@ -22,10 +27,8 @@ async function fetchCampgrounds() {
 
   if (response.status == 200) {
     let data = await response.json();
-
-    campgrounds.value = data.data;
-
-    console.log("from server", data);
+    console.log(data)
+    list.value = data.data;
   }
   else {
     errormsg.value = "Error fetching user data, code: " + response.status
@@ -34,18 +37,19 @@ async function fetchCampgrounds() {
 }
 
 onMounted(()=>{
-  fetchCampgrounds()
+  getVideos()
 })
 </script>
 
 <template>
   <div>
-    <h2>Campgrounds</h2>
+    <h2>Video</h2>
     <p v-if="errormsg">{{ errormsg }}</p>
-    <p v-if="!loaded">Loading campgrounds...</p>
-    <div v-for="camp in campgrounds" :key="camp.parkCode">
-      <h3>{{ camp.name }}</h3>
-      <p>{{ camp.description }}</p>
+    <p v-if="!loaded">Loading video...</p>
+    <div v-for="video in list" :key="video.parkCode">
+      <h4>{{ video.title }}</h4>
+      <video controls :src="video.versions[0].url"></video>
+      <p>Credit: {{ video.credit }}</p>
       <hr>
     </div>
   </div>

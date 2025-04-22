@@ -5,10 +5,11 @@ import { onMounted, ref, useTemplateRef } from 'vue';
 
 const router = useRouter()
 const errormsg = ref("")
-const userName = ref("")
-const firstName = ref("")
-const lastName = ref("")
-const email = ref("")
+const userName = ref(null)
+const firstName = ref(null)
+const lastName = ref(null)
+const email = ref(null)
+const loading = ref(true)
 
 const usrnm = ref("")
 const frstnm = ref("")
@@ -114,6 +115,7 @@ async function fetchUser() {
   else {
     errormsg.value = "Error fetching user data, code: " + response.status
   }
+  loading.value = false
 }
 
 async function dlt() {
@@ -121,7 +123,7 @@ async function dlt() {
     return;
   }
 
-  const token = localStorage.getItem(token)
+  const token = localStorage.getItem("token")
 
   if (!token) {
     errormsg.value = "No token found"
@@ -162,14 +164,19 @@ onMounted(() => {
 
 <template>
   <main>
-    <ul>
-      <li>Username: {{ userName }}</li>
-      <li>First Name: {{ firstName }}</li>
-      <li>Last Name: {{ lastName }}</li>
-      <li>Email: {{ email }}</li>
-      <button @click="modal.open()">Edit</button>
-      <button @click="dlt">Delete Profile</button>
-    </ul>
+    <div class="Profile">
+      <div v-if="loading" class="loading">Loading Profile..</div>
+      <div v-else class="part">
+        <h3>Profile:</h3>
+        Username: {{ userName }}<br>
+        First Name: {{ firstName }}<br>
+        Last Name: {{ lastName }}<br>
+        Email: {{ email }}<br>
+      </div>
+      <br>
+      <button @click="modal.open()" :disabled="loading">Edit</button>
+      <button @click="dlt" :disabled="loading">Delete Profile</button>
+    </div>
   </main>
 
   <Modal ref="name-modal">
@@ -193,5 +200,34 @@ onMounted(() => {
       <button @click="save">Save</button>
     </template>
   </Modal>
-
 </template>
+
+<style scoped>
+.Profile {
+  color: black;
+  font-size: 26px;
+  border-radius: 10px;
+  padding: 0px 20px;
+
+}
+.Profile h1 {
+  font-size: 36px;
+  text-align: center;
+}
+
+button {
+  background-color: #78C2F1;
+  color: black;
+  padding: 5px 10px;
+  font-size: 15px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  margin-right: 10px;
+}
+
+button:hover {
+  box-shadow: 0 0 5px black;
+}
+</style>

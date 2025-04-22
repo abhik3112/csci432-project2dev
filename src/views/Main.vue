@@ -5,7 +5,7 @@ import { RouterView, useRouter } from 'vue-router'
 const router = useRouter()
 
 async function signOut() {
-  const token = localStorage.getItem(token)
+  const token = localStorage.getItem("token")
 
   const url = 'https://excursions-api-server.azurewebsites.net/user/sign-out'
 
@@ -60,7 +60,6 @@ a {
   grid-template-rows: auto 1fr auto;
   height: 100%;
 }
-
 
 @media (min-width: 50em) {
   main {

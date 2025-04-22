@@ -40,7 +40,7 @@ async function signIn(event) {
     localStorage.setItem("userName", data.user.userName)
 
     router.push({
-      name: 'main'
+      name: 'normal'
     })
   }
   else if (response.status === 400) {

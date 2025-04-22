@@ -12,18 +12,23 @@ async function go(section) {
 
 <template>
   <div>
-    <h3>Options:</h3>
-    <li><a @click="go('profile')">Profile</a></li>
-    <li><a @click="go('parkdetails')">Park Details</a></li>
-    <li><a @click="go('multimedia')">Multimedia</a></li>
-    <li><a @click="go('excursions')">Excursions</a></li>
-    <li><a @click="go('trips')">Trips</a></li>
-    <li><a @click="go('social')">Social</a></li>
+    <h2>Options:</h2>
+    <a @click="go('profile')">Profile</a> <br>
+    <a @click="go('parkdetails')">Park Details</a><br>
+    <a @click="go('excursions')">Excursions</a><br>
+    <a @click="go('trips')">Trips</a><br>
+    <a @click="go('social')">Social</a><br>
   </div>
 </template>
 
 <style scoped>
 a {
+  padding: 10px 10px 10px 10px;
+  font-size: 30px;
+  color: gray;
   cursor: pointer;
+}
+a:hover{
+  color: black;
 }
 </style>

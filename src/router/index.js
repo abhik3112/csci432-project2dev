@@ -15,6 +15,10 @@ import NationalParkSum from '@/components/NationalParkSum.vue'
 import Campgrounds from '@/components/Campgrounds.vue'
 import Thingstodo from '@/components/Thingstodo.vue'
 import Friends from '@/components/Friends.vue'
+import AudioPage from "@/components/AudioPage.vue"
+import GalleryPage from '@/components/GalleryPage.vue'
+import GalleryAssetsPage from '@/components/GalleryAssetsPage.vue'
+import VideoPage from '@/components/VideoPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,7 +40,6 @@ const router = createRouter({
     },
     {
       path: '/main',
-      name: 'main',
       component: Main,
       children: [
         {
@@ -55,62 +58,97 @@ const router = createRouter({
           }
         },
         {
-          path: 'parkdetails',
-          components: Parkdetails,
-          children: [
-            {
-              path: '',
-              name: 'park',
-              components: {
-                LeftSidebar: Left,
-                Middle: Parkdetails,
-              }
-            },
-            {
-              path: 'nationalpark',
-              name: 'nationalpark',
-              components: {
-                LeftSidebar: Left,
-                Middle: Parkdetails,
-                RightSidebar: Nationalparks,
-              }
-            },
-            {
-              path: 'nationalparkssum',
-              name: 'nationalparkssum',
-              components: {
-                LeftSidebar: Left,
-                Middle: Parkdetails,
-                RightSidebar: NationalParkSum,
-              }
-            },
-            {
-              path: 'campground',
-              name: 'campground',
-              components: {
-                LeftSidebar: Left,
-                Middle: Parkdetails,
-                RightSidebar: Campgrounds,
-              }
-            },
-            {
-              path: 'thingstodo',
-              name: 'thingstodo',
-              components: {
-                LeftSidebar: Left,
-                Middle: Parkdetails,
-                RightSidebar: Thingstodo,
-              }
-            },
-          ]
+          path: '/parkdetails',
+          name: 'parkdetails',
+          components: {
+            LeftSidebar: Left,
+            Middle: Parkdetails,
+          }
         },
         {
-          path: 'multimedia',
+          path: '/nationalparks',
+          name: 'nationalparks',
+          components: {
+            LeftSidebar: Left,
+            Middle: Parkdetails,
+            RightSidebar: Nationalparks,
+          }
+        },
+        {
+          path: '/nationalparkssum',
+          name: 'nationalparkssum',
+          components: {
+            LeftSidebar: Left,
+            Middle: Parkdetails,
+            RightSidebar: NationalParkSum,
+          }
+        },
+        {
+          path: '/campgrounds',
+          name: 'campgrounds',
+          components: {
+            LeftSidebar: Left,
+            Middle: Parkdetails,
+            RightSidebar: Campgrounds,
+          }
+        },
+        {
+          path: '/thingstodo',
+          name: 'thingstodo',
+          components: {
+            LeftSidebar: Left,
+            Middle: Parkdetails,
+            RightSidebar: Thingstodo,
+          }
+        },
+        {
+          path: '/multimedia/:parkCode',
           name: 'multimedia',
           components: {
             LeftSidebar: Left,
             Middle: Multimedia,
-          }
+          },
+          props:true
+        },
+        {
+          path:"/audio/:parkCode",
+          name:"audio",
+          components:{
+            LeftSidebar: Left,
+            Middle: Multimedia,
+            RightSidebar: AudioPage
+          },
+          props:true
+        },
+        {
+          path:"/galleries/:parkCode",
+          name:"galleries",
+          components:{
+            LeftSidebar: Left,
+            Middle: Multimedia,
+            RightSidebar: GalleryPage
+          },
+          props:true
+        },
+        {
+          path:"/galleriesassets/:parkCode",
+          name:"galleriesassets",
+          components:{
+            LeftSidebar: Left,
+            Middle: Multimedia,
+            RightSidebar: GalleryAssetsPage
+          },
+          props:true
+        },
+        {
+          path:"/videos/:parkCode",
+          name:"videos",
+          components:{
+            LeftSidebar: Left,
+            Middle: Multimedia,
+            RightSidebar: VideoPage
+          },
+          props:true
         },
         {
           path: 'excursions',
@@ -118,7 +156,8 @@ const router = createRouter({
           components: {
             LeftSidebar: Left,
             Middle: Excursions,
-          }
+          },
+          props:true
         },
         {
           path: 'trips',
@@ -129,14 +168,14 @@ const router = createRouter({
           }
         },
         {
-          path: 'Social',
-          name: 'Social',
+          path: 'social',
+          name: 'social',
           components: {
             LeftSidebar: Left,
             Middle: Social,
             RightSidebar: Friends,
           }
-        }
+        },
       ]
     }
   ],

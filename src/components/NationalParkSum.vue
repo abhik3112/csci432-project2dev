@@ -2,15 +2,12 @@
 import { onMounted, ref } from 'vue';
 
 const errormsg = ref("")
-const parkCode = ref("")
-const stateCode = ref("")
-const limit = ref(10)
-const start = ref(0)
-const nationalParkSummary = ref("")
+const nationalParkSummary = ref([])
+const loaded = ref(false)
 
 async function fetchNationalParksSum() {
 
-  const url = 'https://excursions-api-server.azurewebsites.net/national-parks/summary'
+  const url = 'https://excursions-api-server.azurewebsites.net/national-parks/summary?limit=10'
 
   const token = localStorage.getItem("token");
 
@@ -28,14 +25,14 @@ async function fetchNationalParksSum() {
 
     console.log("summary", data);
 
-    nationalParkSummary.value = data;
-    parkCode.value = data.parkCode;
-    stateCode.value = data.stateCode;
+    nationalParkSummary.value = data.data;
 
   }
   else {
     errormsg.value = "Error fetching user data, code: " + response.status
   }
+
+  loaded.value = true
 }
 onMounted(() => {
   fetchNationalParksSum();
@@ -46,11 +43,12 @@ onMounted(() => {
   <div>
     <h2>National Park Summary</h2>
     <p v-if="errormsg">{{ errormsg }}</p>
-    <div v-if="nationalParkSummary">
-      <p><strong>Park Code:</strong> {{ nationalParkSummary.parkCode }}</p>
-      <p><strong>State Code:</strong> {{ nationalParkSummary.stateCode }}</p>
-      </div>
-    <p v-else-if="!errormsg">Loading national park summary...</p>
+    <p v-if="!loaded">Loading national park summary...</p>
+    <div v-for="sum in nationalParkSummary" :key="sum.parkCode">
+      <h3> {{ sum.fullName }}</h3>
+      <p> {{ sum.description }}</p>
+      <hr>
+    </div>
 
     </div>
 </template>

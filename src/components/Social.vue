@@ -6,6 +6,7 @@ const errormsg = ref("")
 const friends = ref([])
 const search = ref("")
 
+
 const searchFriends = computed(() => {
   if (!search.value) {
     return friends.value;
@@ -30,13 +31,18 @@ async function getfriends() {
   })
   console.log("Status:", response.status)
   if(response.status === 200) {
-    errormsg.value = "Ok"
+    // errormsg.value = "Ok"
 
     const data = await response.json()
 
     console.log(data)
 
     friends.value = data.friends || []
+  //   friends.value = [
+  // { _id: '1', userName: 'Spiderman' },
+  // { _id: '2', userName: 'Batman' },
+  // { _id: '3', userName: 'Ironman' }
+// ]
 
   }
   else if (response.status === 400) {
@@ -57,9 +63,11 @@ async function getfriends() {
       <p class="Searchfriends">Search for Friends here:</p>
       <input v-model="search" placeholder="Search here..."><br />
       <button @click="getfriends">Search Friends</button> <br />
-      <RouterLink v-for="friend in searchFriends" :key="friend._id" :to="`social/${friend._id}?name=${friend.userName}`">
-        {{ friend.userName }} <br />
-      </RouterLink>
+      <div v-if="friends.length > 0">
+        <RouterLink v-for="friend in searchFriends" :key="friend._id" :to="`/social/${friend._id}?name=${friend.userName}`">
+          {{ friend.userName }} <br />
+        </RouterLink>
+      </div>
     </div>
   </main>
 </template>

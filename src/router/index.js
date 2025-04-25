@@ -50,7 +50,7 @@ const router = createRouter({
           },
         },
         {
-          path: 'profile',
+          path: '/profile',
           name: 'profile',
           components: {
             LeftSidebar: Left,
@@ -175,7 +175,7 @@ const router = createRouter({
             Middle: Social,
             RightSidebar: Friends,
           }
-        },
+        }
       ]
     }
   ],

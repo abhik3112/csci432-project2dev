@@ -2,6 +2,7 @@
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import Modal from './Modal.vue';
+import Campgrounds from './Campgrounds.vue';
 
 const name = ref([])
 const description = ref("")
@@ -9,6 +10,12 @@ const startDate = ref("")
 const endDate = ref("")
 const trips = ref([])
 const errormsg = ref("")
+const parks = ref([])
+const selectedPark = ref(null)
+const campgrounds = ref([])
+const selectedCampground = ref(null)
+const thingsToDoList = ref([])
+const selectedThingsToDo = ref([])
 
 const router = useRouter()
 const modal = useTemplateRef('name-modal')
@@ -17,6 +24,102 @@ const nm = ref("")
 const des = ref("")
 const stime = ref("")
 const etime = ref("")
+
+async function fetchParks() {
+  const token = localStorage.getItem("token")
+  const url = 'https://excursions-api-server.azurewebsites.net/trip'
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      parks.value = await response.json();
+    } else {
+      console.error('Failed to fetch parks:', response.status, response.statusText);
+      errormsg.value = "Failed to load parks.";
+    }
+  } catch (error) {
+    console.error('Error fetching parks:', error);
+    errormsg.value = "Error loading parks.";
+  }
+}
+
+async function fetchCampgrounds(parkId) {
+  if (!parkId) {
+    campgrounds.value = [];
+    selectedCampground.value = null;
+    return;
+  }
+  const token = localStorage.getItem("token")
+  const url = `https://excursions-api-server.azurewebsites.net/trip/${parkId}/campgrounds`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      campgrounds.value = await response.json();
+    } else {
+      console.error('Failed to fetch campgrounds:', response.status, response.statusText);
+      errormsg.value = "Failed to load campgrounds.";
+    }
+  } catch (error) {
+    console.error('Error fetching campgrounds:', error);
+    errormsg.value = "Error loading campgrounds.";
+  }
+}
+
+async function fetchThingsToDo(parkId) {
+  if (!parkId) {
+    thingsToDoList.value = [];
+    selectedThingsToDo.value = [];
+    return;
+  }
+  const token = localStorage.getItem("token")
+  const url = `https://excursions-api-server.azurewebsites.net/trip/${parkId}/thingstodo`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      thingsToDoList.value = await response.json();
+    } else {
+      console.error('Failed to fetch things to do:', response.status, response.statusText);
+      errormsg.value = "Failed to load things to do.";
+    }
+  } catch (error) {
+    console.error('Error fetching things to do:', error);
+    errormsg.value = "Error loading things to do.";
+  }
+}
+
+function handleParkChange(event) {
+  selectedPark.value = event.target.value
+  fetchCampgrounds(selectedPark.value)
+  fetchThingsToDo(selectedPark.value)
+  selectedCampground.value = null
+  selectedThingsToDo.value = []
+}
+
+function handleThingToDoChange(event) {
+  const thingToDoId = event.target.value;
+  if (event.target.checked) {
+    selectedThingsToDo.value.push(thingToDoId)
+  } else {
+    selectedThingsToDo.value = selectedThingsToDo.value.filter(id => id !== thingToDoId)
+  }
+}
 
 function open(e) {
   edittripid.value = e._id
@@ -204,8 +307,10 @@ async function dltTrip(id) {
   }
 }
 
+
 onMounted(() => {
   getTripsByUser()
+  fetchParks()
 })
 
 </script>
@@ -213,31 +318,58 @@ onMounted(() => {
 <template>
   <main>
     <div>
-    <form @submit.prevent="postTrips">
-      <h2>Create your trip here..</h2>
-      <input type="text" v-model="name" placeholder="Enter your name..." required> <br>
-      <input type="text" v-model="description" placeholder="Enter your description..." required>  <br>
-      <input type="datetime-local" v-model="startDate" required> <br>
-      <input type="datetime-local" v-model="endDate" required><br>
-      <button type="submit">Post Trip</button>
-    </form>
-    <hr />
-    <h2>Your Trips</h2>
-    <button @click="getTripsByUser">Load My Trips</button>
-    <div>
-      <div v-for="trip in trips" :key="trip._id">
-        Trip Name: {{ trip.name }}<br>
-        Description: {{ trip.description }} <br>
-        Start Time: {{ trip.startDate }} <br>
-        End Time: {{ trip.endDate }}
+      <form @submit.prevent="postTrips">
+        <h2>Create your trip here..</h2>
+        <input type="text" v-model="name" placeholder="Enter your name..." required> <br>
+        <input type="text" v-model="description" placeholder="Enter your description..." required> <br>
+        <input type="datetime-local" v-model="startDate" required> <br>
+        <input type="datetime-local" v-model="endDate" required><br>
 
+        <label for="park">Select a Park:</label>
+        <select id="park" v-model="selectedPark" @change="handleParkChange">
+          <option value="" disabled>Select a park</option>
+          <option :value="park._id" v-for="park in parks" :key="park._id">{{ park.name }}</option>
+        </select>
         <br>
-        <button @click="open(trip)">Edit Trip</button>
-        <button @click="dltTrip(trip._id)">Delete Trip</button>
+
+        <label for="campground" v-if="campgrounds.length > 0">Select a Campground:</label>
+        <select id="campground" v-model="selectedCampground" v-if="campgrounds.length > 0">
+          <option value="" disabled>Select a campground</option>
+          <option :value="campground._id" v-for="campground in campgrounds" :key="campground._id">{{ campground.name }}
+          </option>
+        </select>
+        <div v-else-if="selectedPark">No campgrounds available for this park.</div>
+        <br>
+
+        <div v-if="thingsToDoList.length > 0">
+          <h3>Things to do</h3>
+          <div v-for="todo in thingsToDoList" :key="todo._id">
+            <input type="checkbox" :id="'todo-' + todo._id" :value="todo._id" v-model="selectedThingsToDo">
+            <label :for="'todo-' + todo._id">{{ todo.name }}</label>
+          </div>
+        </div>
+        <div v-else-if="selectedPark">No things to do available for this park.</div>
+        <br>
+
+        <button type="submit">Post Trip</button>
+      </form>
+      <hr />
+      <h2>Your Trips</h2>
+      <button @click="getTripsByUser">Load My Trips</button>
+      <div>
+        <div v-for="trip in trips" :key="trip._id">
+          Trip Name: {{ trip.name }}<br>
+          Description: {{ trip.description }} <br>
+          Start Time: {{ trip.startDate }} <br>
+          End Time: {{ trip.endDate }}
+
+          <br>
+          <button @click="open(trip)">Edit Trip</button>
+          <button @click="dltTrip(trip._id)">Delete Trip</button>
+        </div>
       </div>
+      <hr />
     </div>
-    <hr />
-  </div>
   </main>
   <Modal ref="name-modal">
     <template #header>
@@ -284,5 +416,23 @@ button {
 
 button:hover {
   box-shadow: 0 0 5px black;
+}
+
+select {
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 300px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="checkbox"] {
+  margin-right: 5px;
 }
 </style>

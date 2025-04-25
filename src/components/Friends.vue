@@ -1,14 +1,21 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 
-const friendId = ref([])
+const friendId = ref("")
 const errormsg = ref("")
-const mess = ref("")
+const requests = ref([])
 
 async function CreatefriendReq() {
-  const token = localStorage.get(token)
+
+  errormsg.value = ""
+
+  const token = localStorage.getItem("token")
 
   const url = `https://excursions-api-server.azurewebsites.net/friends/requests`
+
+  const data = {
+    friendId: friendId.value,
+  }
 
   const response = await fetch(url, {
     method: 'POST',
@@ -16,18 +23,14 @@ async function CreatefriendReq() {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      text: friendId.value
-    })
+    body: JSON.stringify(data)
   })
   if (response.status === 201) {
-    errormsg.value = "Created"
+    errormsg.value = "Friend Request sent"
 
     const data = await response.json()
 
     console.log(data)
-
-    mess.value.push(data)
   }
   if (response.status === 400) {
     errormsg.value = "Bad Request"
@@ -41,9 +44,9 @@ async function CreatefriendReq() {
 }
 
 async function getFriendReq() {
-  const token = localStorage.get(token)
+  const token = localStorage.getItem("token")
 
-  const url = `https://hap-app-api.azurewebsites.net/messages/${props.userId}`
+  const url = `https://excursions-api-server.azurewebsites.net/friends/requests`
 
   const response = await fetch(url, {
     method: 'GET',
@@ -52,14 +55,14 @@ async function getFriendReq() {
     },
   })
   if (response.status === 200) {
-    errormsg.value = "OK"
+    // errormsg.value = "OK"
 
     const data = await response.json()
     data.reverse()
 
-    console.log(data)
+    console.log("Recieved Friend Request:", data)
 
-    mess.value = data
+    requests.value = data
   }
   if (response.status === 400) {
     errormsg.value = "Bad Request"
@@ -81,10 +84,15 @@ onMounted(() => {
 
 <template>
   <div class="card">
-    <p v-for="request in mess">{{ request.text }}</p>
-    <img @click="$router.back()" class="close" />
-    <label class="secondary-heading label" for="request">Friend Requests:</label>
-    <input type="text" @keyup.enter="CreatefriendReq" v-model="friendId" id="req" />
-
+    <h3>Friend Requests</h3>
+    <p v-if="errormsg" class="error">{{ errormsg }}</p>
+    <div v-for="request in requests" :key="request._id">
+      <p>Sender: {{ request.sender }}</p>
+      <p>Reciever: {{ request.reciever }}</p>
+      <p>Status: {{ request.isAccepted? 'Accepted' : 'Pending' }}</p>
+    </div>
+    <h4>Send Friend Request:</h4>
+    <input v-model="friendId" placeholder="Enter Friend's ID">
+    <button @click="CreatefriendReq" :disabled="!friendId">Send Request</button>
   </div>
 </template>

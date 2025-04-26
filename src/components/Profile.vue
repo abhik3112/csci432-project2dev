@@ -9,6 +9,7 @@ const userName = ref(null)
 const firstName = ref(null)
 const lastName = ref(null)
 const email = ref(null)
+const password = ref(null)
 const loading = ref(true)
 
 const usrnm = ref("")
@@ -99,6 +100,7 @@ async function fetchUser() {
 
   if (response.status == 200) {
     let data = await response.json();
+    data = data.user;
 
     console.log("from server", data);
 

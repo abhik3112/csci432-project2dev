@@ -8,6 +8,9 @@ const errormsg = ref("")
 const name = ref("")
 const description = ref("")
 const exc = ref([])
+const friendId = ref("")
+const excursionid = ref("")
+const friends = ref([])
 
 const modal = useTemplateRef('name-modal')
 const editexcid = ref(null)
@@ -173,7 +176,8 @@ async function dltExc(id) {
   let response = await fetch(url, options)
 
   if (response.status === 200) {
-    errormsg.value  = "Excursion was deleted Successfully. No going back. Its done"
+    getExcursions()
+    errormsg.value = "Excursion was deleted Successfully. No going back. Its done"
   }
   else if (response.status === 401) {
     errormsg.value = "Unauthorized"
@@ -184,6 +188,79 @@ async function dltExc(id) {
     console.log("Internal Server Error")
   }
 }
+
+async function CreateExcReq() {
+
+  errormsg.value = ""
+
+  const token = localStorage.getItem("token")
+
+  const url = `https://excursions-api-server.azurewebsites.net/share/excursion/${excursionid.value}`
+
+  const data = {
+    friendId: friendId.value,
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
+  if (response.status === 201) {
+    errormsg.value = "Friend Request sent"
+
+    const data = await response.json()
+
+    console.log(data)
+  }
+  if (response.status === 400) {
+    errormsg.value = "Bad Request"
+  }
+  if (response.status === 401) {
+    errormsg.value = "Unauthorized"
+  }
+  if (response.status === 500) {
+    errormsg.value = "Internal Server Error"
+  }
+}
+
+async function getfriends() {
+  const token = localStorage.getItem("token")
+
+  console.log("Token:", token)
+
+  const url = `https://excursions-api-server.azurewebsites.net/friends`
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  console.log("Status:", response.status)
+  if (response.status === 200) {
+
+    const data = await response.json()
+
+    console.log(data)
+
+    friends.value = data.friends || []
+
+  }
+  else if (response.status === 400) {
+    errormsg.value = "Bad Request"
+  }
+  else if (response.status === 401) {
+    errormsg.value = "Unauthorized"
+  }
+  else if (response.status === 500) {
+    errormsg.value = "Internal Server Error"
+  }
+}
+
 </script>
 
 <template>
@@ -199,16 +276,30 @@ async function dltExc(id) {
       <h2>Your Excursions</h2>
       <button @click="getExcursions">Load My Excursions</button>
       <div>
-        <div v-for="excs in exc" :key="excs._id">
+        <div class="excu" v-for="excs in exc" :key="excs._id" @click="excursionid = excs._id">
           Excursion Name: {{ excs.name }}<br>
           Description: {{ excs.description }}
           <br>
           <button @click="open(excs)">Edit</button>
           <button @click="dltExc(excs._id)">Delete Excursion</button>
         </div>
+
+        <h3>Search for Friends here:</h3>
+        <input v-model="search" placeholder="Search here..."><br />
+        <button @click="getfriends">Search Friends</button> <br />
+        <div class="fname">
+          <div class="fre" v-for="friend in searchFriends" :key="friend._id" @click="friendId = friend._id">
+            {{ friend.userName }}
+          </div>
+        </div>
+
+        <h4>Send Excursion invite</h4>
+        <input v-model="excursionid" placeholder="Enter your excursion id">
+        <input v-model="friendId" placeholder="Enter your friends id">
+        <button @click="CreateExcReq" :disabled="!excursionid">Send Excursion Invite</button>
       </div>
-        <hr />
-      </div>
+      <hr />
+    </div>
   </main>
   <Modal ref="name-modal">
     <template #header>
@@ -246,5 +337,12 @@ button {
 
 button:hover {
   box-shadow: 0 0 5px black;
+}
+.excu{
+  cursor: pointer;
+}
+
+.fre{
+  cursor: pointer;
 }
 </style>

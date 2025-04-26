@@ -1,11 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { RouterLink } from 'vue-router'
 
 const errormsg = ref("")
 const friends = ref([])
 const search = ref("")
-
+const friendId = ref("")
 
 const searchFriends = computed(() => {
   if (!search.value) {
@@ -30,44 +29,110 @@ async function getfriends() {
     }
   })
   console.log("Status:", response.status)
-  if(response.status === 200) {
-    // errormsg.value = "Ok"
+  if (response.status === 200) {
 
     const data = await response.json()
 
     console.log(data)
 
     friends.value = data.friends || []
-  //   friends.value = [
-  // { _id: '1', userName: 'Spiderman' },
-  // { _id: '2', userName: 'Batman' },
-  // { _id: '3', userName: 'Ironman' }
-// ]
 
   }
   else if (response.status === 400) {
     errormsg.value = "Bad Request"
   }
-  else if(response.status === 401) {
+  else if (response.status === 401) {
     errormsg.value = "Unauthorized"
   }
-  else if(response.status === 500) {
+  else if (response.status === 500) {
     errormsg.value = "Internal Server Error"
   }
 }
+
+async function CreatefriendReq() {
+
+errormsg.value = ""
+
+const token = localStorage.getItem("token")
+
+const url = `https://excursions-api-server.azurewebsites.net/friends/requests`
+
+const data = {
+  friendId: friendId.value,
+}
+
+const response = await fetch(url, {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(data)
+})
+if (response.status === 201) {
+  errormsg.value = "Friend Request sent"
+
+  const data = await response.json()
+
+  console.log(data)
+}
+if (response.status === 400) {
+  errormsg.value = "Bad Request"
+}
+if (response.status === 401) {
+  errormsg.value = "Unauthorized"
+}
+if (response.status === 500) {
+  errormsg.value = "Internal Server Error"
+}
+}
+
 </script>
 
 <template>
   <main>
     <div>
-      <p class="Searchfriends">Search for Friends here:</p>
+      <h3>Search for Friends here:</h3>
       <input v-model="search" placeholder="Search here..."><br />
       <button @click="getfriends">Search Friends</button> <br />
-      <div v-if="friends.length > 0">
-        <RouterLink v-for="friend in searchFriends" :key="friend._id" :to="`/social/${friend._id}?name=${friend.userName}`">
-          {{ friend.userName }} <br />
-        </RouterLink>
+      <div class="fname">
+        <div class="fre" v-for="friend in searchFriends" :key="friend._id" @click="friendId = friend._id">
+          {{ friend.userName }}
+        </div>
       </div>
+
+      <h4>Send Friend Request:</h4>
+      <input v-model="friendId" placeholder="Enter Friend's ID">
+      <button @click="CreatefriendReq" :disabled="!friendId">Send Request</button>
     </div>
   </main>
 </template>
+
+<style scoped>
+main {
+  margin-left: 15px;
+}
+
+.fname {
+  text-decoration: none;
+}
+
+button {
+  background-color: #78C2F1;
+  color: black;
+  padding: 5px;
+  font-size: 11px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  margin: 10px 10px 10px 0px;
+}
+
+button:hover {
+  box-shadow: 0 0 5px black;
+}
+.fre{
+  cursor: pointer;
+}
+</style>

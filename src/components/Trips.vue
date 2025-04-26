@@ -27,7 +27,7 @@ const etime = ref("")
 
 async function fetchParks() {
   const token = localStorage.getItem("token")
-  const url = 'https://excursions-api-server.azurewebsites.net/trip'
+  const url = 'https://excursions-api-server.azurewebsites.net/national-parks?limit=20'
 
   try {
     const response = await fetch(url, {
@@ -37,7 +37,7 @@ async function fetchParks() {
       },
     });
     if (response.ok) {
-      parks.value = await response.json();
+      parks.value = (await response.json()).data;
     } else {
       console.error('Failed to fetch parks:', response.status, response.statusText);
       errormsg.value = "Failed to load parks.";
@@ -48,14 +48,14 @@ async function fetchParks() {
   }
 }
 
-async function fetchCampgrounds(parkId) {
-  if (!parkId) {
+async function fetchCampgrounds(parkCode) {
+  if (!parkCode) {
     campgrounds.value = [];
     selectedCampground.value = null;
     return;
   }
   const token = localStorage.getItem("token")
-  const url = `https://excursions-api-server.azurewebsites.net/trip/${parkId}/campgrounds`
+  const url = `https://excursions-api-server.azurewebsites.net/campgrounds?parkCode=${parkCode}&limit=20`
 
   try {
     const response = await fetch(url, {
@@ -65,7 +65,8 @@ async function fetchCampgrounds(parkId) {
       },
     });
     if (response.ok) {
-      campgrounds.value = await response.json();
+      campgrounds.value = (await response.json()).data;
+      console.log("campgrounds:",campgrounds.value)
     } else {
       console.error('Failed to fetch campgrounds:', response.status, response.statusText);
       errormsg.value = "Failed to load campgrounds.";
@@ -76,14 +77,14 @@ async function fetchCampgrounds(parkId) {
   }
 }
 
-async function fetchThingsToDo(parkId) {
-  if (!parkId) {
+async function fetchThingsToDo(parkCode) {
+  if (!parkCode) {
     thingsToDoList.value = [];
     selectedThingsToDo.value = [];
     return;
   }
   const token = localStorage.getItem("token")
-  const url = `https://excursions-api-server.azurewebsites.net/trip/${parkId}/thingstodo`
+  const url = `https://excursions-api-server.azurewebsites.net/things-to-do?limit=20&parkCode=${parkCode}`
 
   try {
     const response = await fetch(url, {
@@ -93,7 +94,8 @@ async function fetchThingsToDo(parkId) {
       },
     });
     if (response.ok) {
-      thingsToDoList.value = await response.json();
+      thingsToDoList.value = (await response.json()).data;
+      console.log("things to do",thingsToDoList.value);
     } else {
       console.error('Failed to fetch things to do:', response.status, response.statusText);
       errormsg.value = "Failed to load things to do.";
@@ -105,9 +107,9 @@ async function fetchThingsToDo(parkId) {
 }
 
 function handleParkChange(event) {
-  selectedPark.value = event.target.value
-  fetchCampgrounds(selectedPark.value)
-  fetchThingsToDo(selectedPark.value)
+  let parkCode = event.target.value;
+  fetchCampgrounds(parkCode)
+  fetchThingsToDo(parkCode)
   selectedCampground.value = null
   selectedThingsToDo.value = []
 }
@@ -200,7 +202,10 @@ async function postTrips() {
     description: description.value,
     startDate: new Date(startDate.value).toISOString(),
     endDate: new Date(endDate.value).toISOString(),
-    trips: trips.value
+    trips: trips.value,
+    // park: selectedParkId.value,
+    campground: selectedCampground.value,
+    thingstodo: [...thingsToDoList.value.map(v=>v.id)]
   }
 
   console.log("posting:", dt)
@@ -222,13 +227,15 @@ async function postTrips() {
     errormsg.value = "Created"
     const data = await response.json()
     console.log(data)
-    localStorage.setItem("name", data.user.name)
-    localStorage.setItem("description", data.user.description)
-    localStorage.setItem("startDate", data.user.startDate)
-    localStorage.setItem("endDate", data.user.endDate)
-    localStorage.setItem("park", data.user.park)
-    localStorage.setItem("campground", data.user.campground)
-    localStorage.setItem("thingstodo", data.user.thingstodo)
+
+    trips.value.push(data.trip)
+    // localStorage.setItem("name", data.user.name)
+    // localStorage.setItem("description", data.user.description)
+    // localStorage.setItem("startDate", data.user.startDate)
+    // localStorage.setItem("endDate", data.user.endDate)
+    // localStorage.setItem("park", data.user.park)
+    // localStorage.setItem("campground", data.user.campground)
+    // localStorage.setItem("thingstodo", data.user.thingstodo)
   }
   if (response.status === 400) {
     errormsg.value = "Bad Request"
@@ -296,6 +303,7 @@ async function dltTrip(id) {
 
   if (response.status === 200) {
     errormsg.value = "Excursion was deleted Successfully. No going back. Its done"
+    getTripsByUser();
   }
   else if (response.status === 401) {
     errormsg.value = "Unauthorized"
@@ -328,24 +336,24 @@ onMounted(() => {
         <label for="park">Select a Park:</label>
         <select id="park" v-model="selectedPark" @change="handleParkChange">
           <option value="" disabled>Select a park</option>
-          <option :value="park._id" v-for="park in parks" :key="park._id">{{ park.name }}</option>
+          <option :value="park.parkCode" v-for="park in parks" :key="park.id">{{ park.name }}</option>
         </select>
         <br>
 
         <label for="campground" v-if="campgrounds.length > 0">Select a Campground:</label>
-        <select id="campground" v-model="selectedCampground" v-if="campgrounds.length > 0">
+        <select id="campground" v-model="selectedCampground" v-show="campgrounds.length > 0">
           <option value="" disabled>Select a campground</option>
-          <option :value="campground._id" v-for="campground in campgrounds" :key="campground._id">{{ campground.name }}
+          <option :value="campground.id" v-for="campground in campgrounds" :key="campground.id">{{ campground.name }}
           </option>
         </select>
-        <div v-else-if="selectedPark">No campgrounds available for this park.</div>
+        <div v-if="campgrounds.length == 0 && selectedPark">No campgrounds available for this park.</div>
         <br>
 
         <div v-if="thingsToDoList.length > 0">
           <h3>Things to do</h3>
-          <div v-for="todo in thingsToDoList" :key="todo._id">
-            <input type="checkbox" :id="'todo-' + todo._id" :value="todo._id" v-model="selectedThingsToDo">
-            <label :for="'todo-' + todo._id">{{ todo.name }}</label>
+          <div v-for="(todo,i) in thingsToDoList" :key="todo.id" style="display:flex;gap:10px">
+            <input type="checkbox" :id="'todo-' + todo.id" :value="todo.id" v-model="selectedThingsToDo[i]">
+            <label :for="'todo-' + todo.id">{{ todo.title }}</label>
           </div>
         </div>
         <div v-else-if="selectedPark">No things to do available for this park.</div>

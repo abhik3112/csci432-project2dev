@@ -2,7 +2,6 @@
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import Modal from './Modal.vue';
-import Campgrounds from './Campgrounds.vue';
 
 const name = ref([])
 const description = ref("")

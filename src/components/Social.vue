@@ -86,7 +86,6 @@ if (response.status === 500) {
   errormsg.value = "Internal Server Error"
 }
 }
-
 </script>
 
 <template>

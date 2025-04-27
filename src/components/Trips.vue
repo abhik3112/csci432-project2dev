@@ -114,15 +114,6 @@ function handleParkChange(event) {
   selectedThingsToDo.value = []
 }
 
-function handleThingToDoChange(event) {
-  const thingToDoId = event.target.value;
-  if (event.target.checked) {
-    selectedThingsToDo.value.push(thingToDoId)
-  } else {
-    selectedThingsToDo.value = selectedThingsToDo.value.filter(id => id !== thingToDoId)
-  }
-}
-
 function open(e) {
   edittripid.value = e._id
   nm.value = e.name
@@ -203,7 +194,6 @@ async function postTrips() {
     startDate: new Date(startDate.value).toISOString(),
     endDate: new Date(endDate.value).toISOString(),
     trips: trips.value,
-    // park: selectedParkId.value,
     campground: selectedCampground.value,
     thingstodo: [...thingsToDoList.value.map(v=>v.id)]
   }
@@ -229,13 +219,6 @@ async function postTrips() {
     console.log(data)
 
     trips.value.push(data.trip)
-    // localStorage.setItem("name", data.user.name)
-    // localStorage.setItem("description", data.user.description)
-    // localStorage.setItem("startDate", data.user.startDate)
-    // localStorage.setItem("endDate", data.user.endDate)
-    // localStorage.setItem("park", data.user.park)
-    // localStorage.setItem("campground", data.user.campground)
-    // localStorage.setItem("thingstodo", data.user.thingstodo)
   }
   if (response.status === 400) {
     errormsg.value = "Bad Request"

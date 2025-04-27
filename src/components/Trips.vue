@@ -137,6 +137,8 @@ async function save(e) {
   const data = {
     name: nm.value || undefined,
     description: des.value || undefined,
+    endDate: etime.value || undefined,
+    startDate: stime.value || undefined
   }
 
   const url = `https://excursions-api-server.azurewebsites.net/trip/${edittripid.value}`
